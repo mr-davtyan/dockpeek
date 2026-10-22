@@ -8,7 +8,7 @@ Container Registry (`ghcr.io`) without requiring external secrets, and tagging g
 
 **Mechanism**
 - Created `.github/workflows/build-docker.yml` with `workflow_dispatch` trigger.
-- Inputs: `base_version` (default: `1.7.3`), `version_suffix` (optional `NN` override), `push_image` (default: `true`), `create_git_tag` (default: `true`), and `tag_latest` (default: `false`).
+- Inputs: `base_version` (default: `1.7.3`), `version_suffix` (optional `NN` override), `push_image` (default: `true`), `create_git_tag` (default: `true`), and `tag_latest` (default: `true`).
 - Dynamic version resolver fetches all git tags, matches pattern `v<base_version>-*`, computes highest existing sequence number, and auto-increments with 2-digit zero-padding (`01` on first release, then `02`, etc.). Supports manual override if explicitly provided.
 - Asset compilation: executes `npm ci` and `npm run build:css` via Node 20 to ensure fresh Tailwind CSS compilation before container packaging.
 - Multi-architecture build: leverages QEMU and Docker Buildx (`linux/amd64`, `linux/arm64`).

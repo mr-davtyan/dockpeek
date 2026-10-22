@@ -26,7 +26,7 @@ on:
       tag_latest:
         description: 'Also tag and push as :latest'
         required: false
-        default: false
+        default: true
         type: boolean
 
 permissions:

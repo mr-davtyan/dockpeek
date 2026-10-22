@@ -13,7 +13,7 @@
    - `version_suffix`: Optional override for sequence number `NN` (e.g. `01`, `02`).
    - `push_image`: Boolean flag (default `true`) controlling push to GitHub Container Registry (`ghcr.io`).
    - `create_git_tag`: Boolean flag (default `true`) controlling git tag creation and push back to repository.
-   - `tag_latest`: Boolean flag (default `false`) controlling addition of `:latest` tag.
+   - `tag_latest`: Boolean flag (default `true`) controlling addition of `:latest` tag.
 2. **Version Resolution**:
    - Strips leading `v` from `base_version` if supplied.
    - If `version_suffix` is empty, fetches all repository tags and scans for existing `v<base_version>-*` tags.
