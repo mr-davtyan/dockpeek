@@ -13,7 +13,7 @@ Container Registry (`ghcr.io`) without requiring external secrets, and tagging g
 - Asset compilation: executes `npm ci` and `npm run build:css` via Node 20 to ensure fresh Tailwind CSS compilation before container packaging.
 - Multi-architecture build: leverages QEMU and Docker Buildx (`linux/amd64`, `linux/arm64`).
 - Registry authentication: authenticates to `ghcr.io` using built-in `GITHUB_TOKEN` with `packages: write` and `contents: write` permissions.
-- Injects standard OCI/Dockerfile build arguments: `BUILD_DATE`, `VERSION`, and `VCS_REF` (propagating to `APP_VERSION` in Flask backend).
+- Injects standard OCI/Dockerfile build arguments: `BUILD_DATE` (via standard library `datetime.now(timezone.utc)`), `VERSION`, and `VCS_REF` (propagating to `APP_VERSION` in Flask backend).
 - Automatically pushes annotated git tag `v1.7.3-NN` to origin repository upon successful release.
 
 Docs: `.knowledge/features/docker-build-pipeline.md`.
