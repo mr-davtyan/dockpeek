@@ -1,5 +1,23 @@
 # CHANGELOG_ARCHIVE
 
+## [2026-10-22] Feature: Manual Docker build & publish pipeline
+
+**Intent:** Provide a manual GitHub Actions pipeline to build and release multi-architecture Docker
+images tagged with sequence format `v1.7.3-NN` (where `NN` starts from `01`), publishing to GitHub
+Container Registry (`ghcr.io`) without requiring external secrets, and tagging git commits for reproducible releases.
+
+**Mechanism**
+- Created `.github/workflows/build-docker.yml` with `workflow_dispatch` trigger.
+- Inputs: `base_version` (default: `1.7.3`), `version_suffix` (optional `NN` override), `push_image` (default: `true`), `create_git_tag` (default: `true`), and `tag_latest` (default: `false`).
+- Dynamic version resolver fetches all git tags, matches pattern `v<base_version>-*`, computes highest existing sequence number, and auto-increments with 2-digit zero-padding (`01` on first release, then `02`, etc.). Supports manual override if explicitly provided.
+- Asset compilation: executes `npm ci` and `npm run build:css` via Node 20 to ensure fresh Tailwind CSS compilation before container packaging.
+- Multi-architecture build: leverages QEMU and Docker Buildx (`linux/amd64`, `linux/arm64`).
+- Registry authentication: authenticates to `ghcr.io` using built-in `GITHUB_TOKEN` with `packages: write` and `contents: write` permissions.
+- Injects standard OCI/Dockerfile build arguments: `BUILD_DATE`, `VERSION`, and `VCS_REF` (propagating to `APP_VERSION` in Flask backend).
+- Automatically pushes annotated git tag `v1.7.3-NN` to origin repository upon successful release.
+
+Docs: `.knowledge/features/docker-build-pipeline.md`.
+
 ## [2026-10-22] Feature: Batch container updates
 
 **Intent:** After "Check for updates" flags several containers, let the user tick the ones they

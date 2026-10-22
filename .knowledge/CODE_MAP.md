@@ -6,6 +6,7 @@ Structural index of the codebase. Feature digests live in `features/`.
 - [ARCHITECTURE.md](ARCHITECTURE.md) — request flow, state, render pipeline, boundaries
 - [features/container-updates.md](features/container-updates.md) — update check + single update
 - [features/batch-update.md](features/batch-update.md) — checkbox selection + sequential batch update
+- [features/docker-build-pipeline.md](features/docker-build-pipeline.md) — manual multi-arch Docker image build & auto-versioning pipeline
 
 ## Backend (`dockpeek/`)
 | File | Responsibility |
@@ -40,3 +41,8 @@ Structural index of the codebase. Feature digests live in `features/`.
 - `static/css/styles.css` → built into `tailwindcss.css` (committed)
 - `static/css/batch-update.css` — standalone batch update styles
 - `static/css/logs-viewer.css` — imported by styles.css
+
+## CI/CD (`.github/workflows/`)
+| File | Responsibility |
+|---|---|
+| `build-docker.yml` | Manual workflow dispatch: calculates version `v1.7.3-NN`, builds multi-arch image (amd64/arm64), pushes to GHCR, creates git release tag |

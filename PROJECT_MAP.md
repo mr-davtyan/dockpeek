@@ -11,10 +11,11 @@ hosts at a glance (ports, Traefik routes, stacks, logs) and to check for and ins
 | Server | gunicorn + gevent (`gunicorn.conf.py`, timeout 600s) |
 | Frontend | Vanilla ES modules (no bundler), Jinja2 template `templates/index.html` |
 | CSS | Tailwind v4 CLI → committed `static/css/tailwindcss.css` (built from `styles.css`); feature stylesheets loaded standalone (e.g. `batch-update.css`) |
-| Packaging | Dockerfile (python:3.11-slim), compose examples in repo root + `deploy/` |
+| Packaging | Dockerfile (python:3.11-slim), compose examples in repo root + `deploy/`, GitHub Actions multi-arch OCI build |
 
 ## Core Modules
 ```
+.github/workflows/build-docker.yml  manual multi-arch build & release workflow
 run.py / gunicorn.conf.py   entry points
 config.py                   env-driven config
 dockpeek/

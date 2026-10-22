@@ -1,0 +1,160 @@
+name: Build and Publish Docker Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_version:
+        description: 'Base version'
+        required: true
+        default: '1.7.3'
+        type: string
+      version_suffix:
+        description: 'Sequence number NN (leave blank to auto-calculate from git tags, starts at 01)'
+        required: false
+        default: ''
+        type: string
+      push_image:
+        description: 'Push image to GitHub Container Registry (ghcr.io)'
+        required: true
+        default: true
+        type: boolean
+      create_git_tag:
+        description: 'Create and push git tag for this version (e.g., v1.7.3-01)'
+        required: true
+        default: true
+        type: boolean
+      tag_latest:
+        description: 'Also tag and push as :latest'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Build CSS
+        run: |
+          npm ci
+          npm run build:css
+
+      - name: Determine Version and Build Date
+        id: version
+        env:
+          BASE_INPUT: ${{ inputs.base_version }}
+          OVERRIDE_NN: ${{ inputs.version_suffix }}
+        run: |
+          python3 -c '
+          import os, subprocess, sys
+
+          base_input = os.environ.get("BASE_INPUT", "1.7.3").strip()
+          override_nn = os.environ.get("OVERRIDE_NN", "").strip()
+          base_ver = base_input.lstrip("v")
+
+          if override_nn:
+              nn = f"{int(override_nn):02d}" if override_nn.isdigit() else override_nn
+          else:
+              try:
+                  subprocess.run(["git", "fetch", "--tags", "--force"], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                  res = subprocess.run(["git", "tag", "-l"], capture_output=True, text=True, check=True)
+                  tags = res.stdout.strip().splitlines()
+              except Exception:
+                  tags = []
+
+              prefix = f"v{base_ver}-"
+              alt_prefix = f"{base_ver}-"
+              numbers = []
+              for t in tags:
+                  t = t.strip()
+                  s = ""
+                  if t.startswith(prefix):
+                      s = t[len(prefix):]
+                  elif t.startswith(alt_prefix):
+                      s = t[len(alt_prefix):]
+                  if s.isdigit():
+                      numbers.append(int(s))
+              max_nn = max(numbers) if numbers else 0
+              nn = f"{max_nn + 1:02d}"
+
+          full_version = f"v{base_ver}-{nn}"
+          print(f"Target version: {full_version} (base: {base_ver}, NN: {nn})")
+
+          github_output = os.environ.get("GITHUB_OUTPUT")
+          if github_output:
+              with open(github_output, "a") as f:
+                  f.write(f"version={full_version}\n")
+                  f.write(f"base_version={base_ver}\n")
+                  f.write(f"nn={nn}\n")
+                  f.write(f"build_date={subprocess.check_output([\"date\", \"-u\", \"+%Y-%m-%dT%H:%M:%SZ\"], text=True).strip()}\n")
+          '
+
+      - name: Configure Image Tags
+        id: tags
+        run: |
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE="ghcr.io/${REPO_LOWER}"
+          VERSION="${{ steps.version.outputs.version }}"
+
+          TAGS="${IMAGE}:${VERSION}"
+          if [ "${{ inputs.tag_latest }}" = "true" ]; then
+            TAGS="${TAGS},${IMAGE}:latest"
+          fi
+
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+          echo "tags=${TAGS}" >> "$GITHUB_OUTPUT"
+          echo "Configured tags: ${TAGS}"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        if: ${{ inputs.push_image }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: ${{ inputs.push_image }}
+          tags: ${{ steps.tags.outputs.tags }}
+          build-args: |
+            BUILD_DATE=${{ steps.version.outputs.build_date }}
+            VERSION=${{ steps.version.outputs.version }}
+            VCS_REF=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Create and push git tag
+        if: ${{ inputs.create_git_tag && inputs.push_image }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${TAG_NAME}" -m "Release ${TAG_NAME}"
+          git push origin "${TAG_NAME}"
+          echo "Successfully created and pushed tag ${TAG_NAME}"
