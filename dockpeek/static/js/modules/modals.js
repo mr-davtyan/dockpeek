@@ -1,6 +1,7 @@
 import { updateDisplay } from './filters.js';
 import { state } from './state.js';
 import { escapeHtml } from './sanitize.js';
+import { isBatchEligible } from './batch-selection.js';
 
 export function showUpdatesModal(updatedContainers) {
   const updatesList = document.getElementById("updates-list");
@@ -23,6 +24,20 @@ export function showUpdatesModal(updatedContainers) {
 
   updatesModalOkBtn.addEventListener('click', okHandler, { once: true });
   updatesModal.addEventListener('click', e => e.target === updatesModal && okHandler(), { once: true });
+
+  // Offer to pre-select all eligible containers for a batch update.
+  const selectBtn = document.getElementById('updates-modal-select-button');
+  if (selectBtn) {
+    const eligible = updatedContainers.filter(isBatchEligible);
+    selectBtn.classList.toggle('hidden', eligible.length < 2);
+    selectBtn.textContent = `Select all ${eligible.length} for update`;
+    // onclick (not addEventListener) so repeated opens don't stack handlers.
+    selectBtn.onclick = async () => {
+      const { selectContainersForBatch } = await import('./batch-update.js');
+      selectContainersForBatch(eligible);
+      okHandler();
+    };
+  }
 }
 
 export function showNoUpdatesModal() {
@@ -41,6 +56,7 @@ export function showNoUpdatesModal() {
   `;
 
   updatesList.innerHTML = "<li class='no-updates-message'>All containers are up to date!</li>";
+  document.getElementById('updates-modal-select-button')?.classList.add('hidden');
   updatesModal.classList.remove('hidden');
   updatesModal.classList.add('no-update');
 

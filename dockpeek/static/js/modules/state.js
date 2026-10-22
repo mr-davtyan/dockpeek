@@ -15,6 +15,9 @@ export const state = {
   isDataLoaded: false,
   isCheckingForUpdates: false,
   updateCheckController: null,
+  // Batch update: key (JSON [server, name]) -> { server, name }
+  selectedForUpdate: new Map(),
+  isBatchUpdating: false,
   columnOrder: ['name', 'stack', 'server', 'ports', 'traefik', 'image', 'tags', 'logs', 'status'],
   columnVisibility: {
     name: true,

@@ -6,6 +6,7 @@ import * as ColumnOrder from './column-order.js';
 import { handlePruneImages, initPruneInfo } from './prune.js';
 import { state } from './state.js';
 import { logsViewer } from './logs-viewer.js';
+import { initBatchUpdate } from './batch-update.js';
 
 
 export function initEventListeners() {
@@ -26,6 +27,8 @@ export function initEventListeners() {
   });
 
   checkUpdatesButton.addEventListener("click", checkForUpdates);
+
+  initBatchUpdate();
 
   document.getElementById('prune-images-button').addEventListener('click', () => {
     handlePruneImages();
@@ -98,6 +101,11 @@ export function initEventListeners() {
     if (e.target.classList.contains('update-available-indicator') || e.target.closest('.update-available-indicator')) {
       e.preventDefault();
       e.stopPropagation();
+
+      if (state.isBatchUpdating) {
+        document.getElementById('batch-update-modal')?.classList.remove('hidden');
+        return;
+      }
 
       const indicator = e.target.classList.contains('update-available-indicator') ? e.target : e.target.closest('.update-available-indicator');
       const serverName = indicator.dataset.server;

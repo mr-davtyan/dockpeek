@@ -7,6 +7,7 @@
   <meta name="api-prefix" content="{{ request.script_root }}">
   <title>Dockpeek</title>
   <link href="{{ url_for('static', filename='css/tailwindcss.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/batch-update.css') }}" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/logo.svg') }}">
 </head>
 
@@ -397,6 +398,10 @@
               <code class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm" data-content="image"></code>
             </div>
 
+            <label class="batch-select hidden" data-content="batch-select">
+              <input type="checkbox" class="batch-select-checkbox">
+            </label>
+
             <span class="update-indicator hidden" data-content="update-indicator" data-server="" data-container="">
               <svg fill="currentColor" width="20" height="20" viewBox="2 2 52 52" xmlns="http://www.w3.org/2000/svg"
                 class="text-orange-500 hover:text-orange-600">
@@ -467,9 +472,57 @@
         </ul>
       </div>
       <div class="flex justify-center space-x-4">
+        <button id="updates-modal-select-button"
+          class="batch-modal-secondary hidden px-6 py-2 rounded-lg font-medium">
+          Select all for update
+        </button>
         <button id="updates-modal-ok-button"
           class="green-ok-button px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium">
           OK
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="batch-update-bar" class="batch-bar hidden" role="region" aria-label="Batch update">
+    <div class="batch-bar-info">
+      <span id="batch-bar-count" class="batch-bar-count">0</span>
+      <span id="batch-bar-label" class="batch-bar-label">selected</span>
+    </div>
+    <span class="batch-bar-divider" aria-hidden="true"></span>
+    <button id="batch-select-all-button" type="button" class="batch-bar-link">Select all</button>
+    <button id="batch-clear-button" type="button" class="batch-bar-link hidden">Clear</button>
+    <button id="batch-update-button" type="button" class="batch-bar-primary" disabled>
+      <span class="batch-bar-spinner" aria-hidden="true"></span>
+      <svg class="batch-bar-icon" fill="currentColor" viewBox="2 2 52 52" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path
+          d="M28 51.906c13.055 0 23.906-10.828 23.906-23.906 0-13.055-10.875-23.906-23.93-23.906C14.899 4.094 4.095 14.945 4.095 28c0 13.078 10.828 23.906 23.906 23.906m0-3.984C16.937 47.922 8.1 39.062 8.1 28c0-11.04 8.813-19.922 19.876-19.922 11.039 0 19.921 8.883 19.945 19.922.023 11.063-8.883 19.922-19.922 19.922m0-31.969c-.516 0-.89.188-1.36.656l-7.968 7.922c-.305.305-.445.727-.445 1.219 0 .96.726 1.688 1.687 1.688.492 0 .937-.188 1.242-.516l2.906-2.930 2.368-2.812-.188 4.945v12.21c0 1.032.727 1.759 1.758 1.759 1.008 0 1.758-.727 1.758-1.758V26.125l-.188-4.969 2.367 2.836 2.907 2.930c.304.351.726.515 1.242.515.96 0 1.710-.726 1.710-1.687 0-.492-.163-.914-.491-1.219l-7.922-7.922c-.469-.445-.867-.656-1.383-.656" />
+      </svg>
+      <span id="batch-update-button-label">Update</span>
+    </button>
+  </div>
+
+  <div id="batch-update-modal" class="modal-overlay hidden">
+    <div class="modal-content batch-modal" role="dialog" aria-modal="true" aria-labelledby="batch-modal-title">
+      <div class="batch-modal-header">
+        <h3 id="batch-modal-title" class="batch-modal-title">Update selected containers</h3>
+        <p id="batch-modal-subtitle" class="batch-modal-subtitle"></p>
+      </div>
+      <div id="batch-progress" class="batch-progress hidden">
+        <div class="progress-bar">
+          <div id="batch-progress-fill" class="progress-fill" style="width: 0%"></div>
+        </div>
+        <span id="batch-progress-counter" class="batch-progress-counter">0 / 0</span>
+      </div>
+      <ul id="batch-update-list" class="batch-list"></ul>
+      <p id="batch-modal-note" class="batch-modal-note hidden"></p>
+      <div class="flex justify-center space-x-4">
+        <button id="batch-cancel-button" type="button"
+          class="modal-cancel-button px-6 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 font-medium">
+          Cancel
+        </button>
+        <button id="batch-confirm-button" type="button" class="batch-confirm-button px-6 py-2 rounded-lg font-medium">
+          Update
         </button>
       </div>
     </div>

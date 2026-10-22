@@ -145,6 +145,11 @@ export async function checkForUpdates() {
     return;
   }
 
+  if (state.isBatchUpdating) {
+    document.getElementById('batch-update-modal')?.classList.remove('hidden');
+    return;
+  }
+
   const activeServers = state.allServersData.filter(s => s.status === 'active');
   const serversToCheck = state.currentServerFilter === 'all'
     ? activeServers

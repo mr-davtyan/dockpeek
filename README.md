@@ -28,7 +28,7 @@ It automatically detects Traefik labels and works out of the box with zero confi
 * **Live container logs** — Stream logs in real time
 * **Traefik integration** — Automatically extract service URLs from labels
 * **[Multi-host management](#-multi-host-setup)** — Control multiple Docker daemons from one interface
-* **Image update checks** — Detect and upgrade outdated containers
+* **Image update checks & batch updates** — Detect outdated containers and upgrade them individually or in batch (one-by-one)
 
 ## 🏷️ [Labels Support](#%EF%B8%8F-container-labels)
 

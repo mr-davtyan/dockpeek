@@ -2,6 +2,7 @@ import * as CellRenderer from './cell-renderer.js';
 import { renderStatus } from './status-renderer.js';
 import { updateColumnVisibility, updateFirstAndLastVisibleColumns } from './column-visibility.js';
 import { updateTableOrder } from './column-order.js';
+import { renderBatchCheckbox, syncBatchBar } from './batch-selection.js';
 
 
 export class TableRenderer {
@@ -15,6 +16,7 @@ export class TableRenderer {
 
     if (!containers.length) {
       this.body.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-gray-500">No containers found matching your criteria.</td></tr>`;
+      syncBatchBar();
       return;
     }
 
@@ -32,6 +34,7 @@ export class TableRenderer {
     updateTableOrder();
     updateColumnVisibility();
     updateFirstAndLastVisibleColumns();
+    syncBatchBar();
   }
 
   _renderRow(container, hasAnyTraefikRoutes) {
@@ -52,6 +55,7 @@ export class TableRenderer {
     CellRenderer.renderImage(container, imageCell, clone);
 
     CellRenderer.renderUpdateIndicator(container, clone);
+    renderBatchCheckbox(container, clone);
 
     const tagsCell = clone.querySelector('[data-content="tags"]');
     tagsCell.classList.add('table-cell-tags');
