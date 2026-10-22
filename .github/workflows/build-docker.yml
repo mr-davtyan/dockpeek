@@ -61,6 +61,7 @@ jobs:
         run: |
           python3 -c '
           import os, subprocess, sys
+          from datetime import datetime, timezone
 
           base_input = os.environ.get("BASE_INPUT", "1.7.3").strip()
           override_nn = os.environ.get("OVERRIDE_NN", "").strip()
@@ -92,7 +93,9 @@ jobs:
               nn = f"{max_nn + 1:02d}"
 
           full_version = f"v{base_ver}-{nn}"
+          build_date = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
           print(f"Target version: {full_version} (base: {base_ver}, NN: {nn})")
+          print(f"Build date: {build_date}")
 
           github_output = os.environ.get("GITHUB_OUTPUT")
           if github_output:
@@ -100,7 +103,7 @@ jobs:
                   f.write(f"version={full_version}\n")
                   f.write(f"base_version={base_ver}\n")
                   f.write(f"nn={nn}\n")
-                  f.write(f"build_date={subprocess.check_output([\"date\", \"-u\", \"+%Y-%m-%dT%H:%M:%SZ\"], text=True).strip()}\n")
+                  f.write(f"build_date={build_date}\n")
           '
 
       - name: Configure Image Tags
